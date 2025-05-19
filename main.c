@@ -5,6 +5,7 @@
 #include <conio.h>
 
 int main() {
+	int n;
 
 
 
