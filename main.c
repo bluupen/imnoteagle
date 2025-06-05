@@ -24,31 +24,28 @@ void normalmode(int difficulty);
 void storymode();
 
 void test() {
-	const char* level1_story[] = {
-		"2084년, 인류는 하나의 초지능 네트워크 '코어넷'으로 연결되었다...",
-		"그날, 모든 시스템이 동시에 멈췄다.",
-		"이상한 문자열이 화면을 뒤덮었고...",
-		"데이터가 무너져 내리기 시작했다.",
-		"복구 요원 호출 중...",
-		"타이핑 요원 인증됨.",
-		"시스템 복원 프로토콜을 시작합니다...",
-		"-- 레벨 1 시작 --"
-	};
-	int cnt = 0;
 	while (1) {
-		printf("\r%s\n", level1_story[cnt++]);
-		if (cnt >= sizeof(level1_story) / sizeof(level1_story[0])) {
-			break;
-		}
+		Beep(587, 90);  // D5
+		Beep(739, 90);  // F5#
+		Beep(880, 90);  // A5
+		Beep(1108, 90);  // C6#
+		Beep(1174, 200); // C6 (hold last note longer)
+		Sleep(1000);
+		Beep(698, 90);  // F5
+		Beep(622, 90);  // D#5
+		Beep(587, 90);  // D5
+		Beep(523, 90);  // C5
+		Beep(392, 200);  // G4 (lower final note, held longer)
+		while (_getch() != 27); // Wait for ESC to exit
+
 	}
-	while (_getch() != 27); // Wait for ESC to exit
 }
  
 int main() {
-	// off cursor blinking
+	// no more cursor blinking
 	CONSOLE_CURSOR_INFO cursorInfo = { 0, };
-	cursorInfo.bVisible = 0; // 커서를 보일지 말지 결정(0이면 안보임, 0제외 숫자 값이면 보임)
-	cursorInfo.dwSize = 1; // 커서의 크기를 결정 (1~100 사이만 가능)
+	cursorInfo.bVisible = 0;
+	cursorInfo.dwSize = 1;
 	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
 
 	// console size setting
@@ -61,7 +58,7 @@ int main() {
 	int gametype = 1; // 1: easy, 2: normal, 3: hard, 4: story mode
 
 	while (1) {
-		lobby(&gametype); // 게임 선택화면
+		lobby(&gametype);
 		if (1 <= gametype && gametype <= 3) {
 			normalmode(gametype);
 		}
@@ -160,8 +157,6 @@ char* generate_word(int difficulty) {
 }
 
 void lobby(int* gametype) {
-	// 게임 선택화면
-	// 게임 선택(기본모드 / 스토리모드), 설정, 툴팁
 	int option = 1; // 1: normal mode, 2: story mode, 3: tooltip, 4: exit
 	char ch;
 	system("cls");
@@ -181,6 +176,7 @@ void lobby(int* gametype) {
 		gotoxy(START_X + 4, START_Y + option);
 		printf(">>");
 		if (_kbhit()) {
+			Beep(392, 50); // G4
 			ch = _getch();
 			if (ch == -32) {
 				gotoxy(START_X + 4, START_Y + option);
@@ -213,6 +209,7 @@ void lobby(int* gametype) {
 						gotoxy(START_X + 4, START_Y + option);
 						printf(">>");
 						if (_kbhit()) {
+							Beep(392, 50); // G4
 							ch = _getch();
 							if (ch == -32) {
 								gotoxy(START_X + 4, START_Y + option);
@@ -363,14 +360,18 @@ void normalmode(int _difficulty) {
 				else if (ch == 13) { // Enter
 					word[idx] = '\0';
 					if (strcmp(word, answer) == 0) {
-						gotoxy(START_X, START_Y + 5);
-						printf("Correct!"); // will change to playsound
+						Beep(1108, 70);  // C6#
+						Beep(1318, 70);  // E6
 						score++;
-						if (score >= GAME_WORDLIMIT) break;
+						if (score >= GAME_WORDLIMIT) {
+							gotoxy(START_X + 36, START_Y + 1);
+							printf("%2d", score);
+							break;
+						}
 					}
 					else {
-						gotoxy(START_X, START_Y + 5);
-						printf("Wrong"); // will change to playsound
+						Beep(196, 70);  // G3
+						Beep(196, 70);
 					}
 					wordtimer(TIMER_END); // Reset word timer
 				}
@@ -380,13 +381,25 @@ void normalmode(int _difficulty) {
 			if (difficulty >= 3) {
 				gotoxy(START_X, START_Y + 6);
 				printf("Congratulations! You completed all difficulties.");
+				Beep(587, 90);  // D5
+				Beep(739, 90);  // F5#
+				Beep(880, 90);  // A5
+				Beep(1108, 90);  // C6#
+				Beep(1174, 200); // D6
 				gotoxy(START_X, START_Y + 7);
 				printf("Press Enter to return to the lobby.");
 				while (_getch() != 13);
 				break;
 			}
 			gotoxy(START_X, START_Y + 6);
-			printf("You win! Press Enter to continue...");
+			printf("You win!");
+			Beep(587, 90);  // D5
+			Beep(739, 90);  // F5#
+			Beep(880, 90);  // A5
+			Beep(1108, 90);  // C6#
+			Beep(1174, 200); // D6
+			gotoxy(START_X, START_Y + 7);
+			printf("Press Enter to next difficulty.");
 			while (_getch() != 13);
 			continue;
 		}
@@ -394,6 +407,12 @@ void normalmode(int _difficulty) {
 			gotoxy(START_X, START_Y + 6);
 			printf("Lost the game. TOO SLOW!");
 			gotoxy(START_X, START_Y + 7);
+			Beep(698, 90);  // F5
+			Beep(622, 90);  // D#5
+			Beep(587, 90);  // D5
+			Beep(523, 90);  // C5
+			Beep(196, 90);  // G3
+			Beep(196, 200);  // G3
 			printf("Press Enter to return to the lobby.");
 			while (_getch() != 13);
 			break;
@@ -402,7 +421,6 @@ void normalmode(int _difficulty) {
 
 	return;
 }
-
 
 void storymode() {
 	gotoxy(10, 3);
