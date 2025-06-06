@@ -566,13 +566,10 @@ void storymode() {
 		gotoxy(START_X, START_Y + 20);
 		printf("------------------------------------------------------");
 
-		wordtimer(0);
-		DWORD gamestart = timeGetTime();
-		DWORD wordstart = timeGetTime();
 		t = stagetimelimit[stage - 1];
 		wordtimer(TIMER_END);
 
-		int wordcnt = 5;
+		int wordcnt = STORY_WORD_CYCLE;
 		while (heart) {
 			gotoxy(START_X, START_Y - 3);
 			printf("score: %2d                                   ", score);
@@ -618,6 +615,7 @@ void storymode() {
 					gotoxy(START_X, START_Y + 25);
 					printf("Press Enter to return to the lobby.");
 					while (_getch() != 13);
+					free_list(&wordlisthead);
 					return;
 				}
 				else if (ch == 8) { // Backspace
@@ -668,6 +666,7 @@ void storymode() {
 				}
 			}
 		}
+		free_list(&wordlisthead);
 		if (score >= STORY_WORDLIMIT) {
 			if (stage >= 5) {
 				stage++;
