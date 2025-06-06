@@ -1,62 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
-#include <stdio.h>
-#include <stdlib.h>
-#include <conio.h>
-#include <time.h>
-#include <windows.h>
-#include <mmsystem.h>
-#pragma comment(lib, "winmm.lib")
-
-#define SIZE 10
-#define START_X 20
-#define START_Y 5
-#define GAME_TIMELIMIT 10000
-#define GAME_WORDLIMIT 2
-#define TIMER_END -1
-
-#define COLOR_PRINTF(color,str) printf("\033[0;"#color"m" str)
-#define COLOR_BRIGHT_CYAN 96
-#define COLOR_BLUE 34
-#define COLOR_GRAY 90
-#define COLOR_YELLOW 33
-#define COLOR_BRIGHT_GREEN 92
-#define COLOR_MAGENTA 35
-#define COLOR_RED 31
-#define COLOR_WHITE 37
-//Black  : \033[0;30m
-
-typedef struct Word {
-	char text[SIZE];
-	int x;
-	int y;
-} Word;
-
-typedef struct Node {
-	Word word;
-	struct Node* next;
-} Node;
-
-void gotoxy(int x, int y);
-int gametimer(int time);
-int wordtimer(int time);
-char* generate_word(int _difficulty);
-
-void lobby(int* gametype);
-void normalmode(int difficulty);
-void storymode();
-
-// story.c
-void start_story_mode();
-void free_list(Node** head);
-
-// linkedlist.c
-void append_node(Node** head, Word word);
-void delete_bottom(Node** head, int* heart);
-void free_list(Node** head);
-void move_down(Node* head);
-void print_list(Node* head);
-void print_word_text(Node* head);
-void unprint_word_text(Node* head);
+#include "game.h"
 
 void test() {
 	while (1) {
@@ -84,7 +26,7 @@ int main() {
 	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
 
 	// console size setting
-	system("mode con: cols=100 lines=30");
+	system("mode con: cols=90 lines=34");
 
 	srand(time(0));
 
@@ -163,7 +105,7 @@ char* generate_word(int difficulty) {
 	"install", "jealous", "keeping", "landing", "massive", "nations", "officer", "predict", "qualify", "rescuee",
 	"striker", "turning", "urgency", "variety", "winning", "xeroxes", "youling", "zippers", "archive", "bargain",
 	"contest", "deliver", "exclude", "fiction", "gestalt", "harvest", "invited", "jaggers", "kindled", "largely",
-	"morning", "notions", "offbeat", "passage", "quickly", "respect", "sandbox", "talking", "unclear", "violent"
+	"morning", "notions", "offbeat", "passage", "quickly", "respect", "sandbox", "talking", "unclear", "violent",
 	"aardvarks", "abilities", "absolutes", "admirable", "backpacks", "ballerina", "bankrupts", "baseboard", "campfires", "capsizing",
 	"caretaker", "cellulose", "daffodils", "dashboard", "dedicated", "deviating", "education", "elevators", "elsewhere", "enlarging",
 	"factories", "faltering", "favorable", "fireplace", "gardening", "gasolines", "gearshift", "goldsmith", "hairdryer", "hallucins",
@@ -191,9 +133,9 @@ char* generate_word(int difficulty) {
 		case 14:
 			if (rand() % 100 < 30) {
 				char tmp[SIZE];
-				strcmp(tmp, words[rand() % 100 + 200]);
+				strcpy(tmp, words[100 + rand() % 100]);
 				for (int i = 0; i < 7; i++) 
-					tmp[6 - i] = word[i];
+					word[6 - i] = tmp[i];
 				word[7] = '\0';
 			}
 			else
@@ -202,9 +144,9 @@ char* generate_word(int difficulty) {
 		case 15:
 			if (rand() % 100 < 30) {
 				char tmp[SIZE];
-				strcmp(tmp, words[rand() % 100 + 200]);
+				strcpy(tmp, words[100 + rand() % 100]);
 				for (int i = 0; i < 7; i++)
-					tmp[6 - i] = word[i];
+					word[6 - i] = tmp[i];
 				word[7] = '\0';
 			}
 			else
@@ -213,17 +155,19 @@ char* generate_word(int difficulty) {
 		}
 		return word;
 	}
-
-	if (rand() % 2) {
-		strcpy(word, words[rand() % 100 + (difficulty - 1) * 100]);
-	}
-	else {
-		for (int i = 0; i < 3 + difficulty * 2; i++) {
-			word[i] = (rand() % 2 ? 'A' : 'a') + rand() % 26;
+	else if (1 <= difficulty && difficulty <= 3) {
+		if (rand() % 2) {
+			strcpy(word, words[rand() % 100 + (difficulty - 1) * 100]);
 		}
-		word[3 + difficulty * 2] = '\0';
+		else {
+			for (int i = 0; i < 3 + difficulty * 2; i++) {
+				word[i] = (rand() % 2 ? 'A' : 'a') + rand() % 26;
+			}
+			word[3 + difficulty * 2] = '\0';
+		}
+		return word;
 	}
-	return word;
+	return 0; // error
 }
 
 void lobby(int* gametype) {
@@ -380,9 +324,9 @@ void normalmode(int _difficulty) {
 		gotoxy(START_X + 12 - difficulty, START_Y + 3);
 		printf("%s", answer);
 
-		while (!gametimer(GAME_TIMELIMIT)) {
+		while (!gametimer(NORMAL_TIMELIMIT)) {
 			gotoxy(START_X, START_Y + 1);
-			printf("Game Left:%2d | Word Left:%2d | Score:%2d    ", GAME_TIMELIMIT / 1000 - (timeGetTime() - gamestart) / 1000, t / 1000 - (timeGetTime() - wordstart) / 1000, score);
+			printf("Game Left:%2d | Word Left:%2d | Score:%2d    ", NORMAL_TIMELIMIT / 1000 - (timeGetTime() - gamestart) / 1000, t / 1000 - (timeGetTime() - wordstart) / 1000, score);
 			if (wordtimer(t)) {
 				gotoxy(START_X + 6, START_Y + 3);
 				printf("                    ");
@@ -394,9 +338,7 @@ void normalmode(int _difficulty) {
 				strcpy(answer, generate_word(difficulty));
 				idx = 0;
 				gotoxy(START_X + 6, START_Y + 3);
-				printf(">> ");
-				gotoxy(START_X + 18, START_Y + 3);
-				printf(" <<");
+				printf(">>           <<");
 				gotoxy(START_X + 12 - difficulty, START_Y + 3);
 				printf("%s", answer);
 			}
@@ -432,7 +374,7 @@ void normalmode(int _difficulty) {
 						Beep(1108, 70);  // C6#
 						Beep(1318, 70);  // E6
 						score++;
-						if (score >= GAME_WORDLIMIT) {
+						if (score >= NORMAL_WORDLIMIT) {
 							gotoxy(START_X + 36, START_Y + 1);
 							printf("%2d", score);
 							break;
@@ -446,7 +388,7 @@ void normalmode(int _difficulty) {
 				}
 			}
 		}
-		if (score >= GAME_WORDLIMIT) {
+		if (score >= NORMAL_WORDLIMIT) {
 			if (difficulty >= 3) {
 				gotoxy(START_X, START_Y + 6);
 				printf("Congratulations! You completed all difficulties.");
@@ -490,30 +432,37 @@ void normalmode(int _difficulty) {
 }
 
 void storymode() {
-	//start_story_mode();
-
-
 	static int leveltimelimit[] = { 1000, 800, 800, 800, 700 };
 	char answer[SIZE];
 	char word[SIZE];
-	int level = 0, idx = 0, score = 0, heart = 3;
+	int level = 0, idx, score, heart;
 	DWORD t = 0;
 	char ch;
 
 	while (level < 5) {
-		Word* wordlisthead = NULL;
 		level++;
+		Word* wordlisthead = NULL;
 		score = 0;
-		idx = 0;		
-		heart = 3;
+		idx = 0;
+		heart = 4;
 
 		system("cls");
+		printstory(level);
+		gotoxy(START_X, START_Y + 22);
+		printf("[Enter 키를 눌러 계속하세요...]");
+		while (_getch() != 13);
+		system("cls");
+
 		gotoxy(START_X, START_Y - 1);
 		switch (level) {
-		case 1:	case 2:	case 3:	case 4: printf("================  [  Level %d  ]  ================", level); break;
-		case 5: printf("================  [   BOSS    ]  ================"); break;
+		case 1:	case 2:	case 3:	case 4: printf("===================  [  Level %d  ]  ==================", level); break;
+		case 5: printf("===================  [   BOSS    ]  =================="); break;
 		default: break;
 		}
+		gotoxy(START_X + 19, START_Y + 22);
+		printf(">>           <<");
+		gotoxy(START_X, START_Y + 20);
+		printf("------------------------------------------------------");
 
 		wordtimer(0);
 		DWORD gamestart = timeGetTime();
@@ -521,106 +470,104 @@ void storymode() {
 		t = leveltimelimit[level - 1];
 		wordtimer(TIMER_END);
 
-		int cnt = 0;
+		int wordcnt = 5;
 		while (heart) {
-			if (wordtimer(t)) {
-				gotoxy(0, 0);
-				printf("working #%d\n",cnt++);
-				unprint_word_text(wordlisthead);
-				gotoxy(0, 1);
-				printf("unprint\n");
-				move_down(wordlisthead);
-				printf("movedown\n");
-				delete_bottom(&wordlisthead, &heart);
-				printf("delete\n");
-				Word tmpword;
-				tmpword.x = START_X + 15 * (rand() % 4);
-				tmpword.y = START_Y + 3;
-				strcpy(tmpword.text, generate_word(level));
-				printf("generate\n");
-				append_node(&wordlisthead, tmpword);
-				printf("append\n");
-				print_word_text(wordlisthead);
-				gotoxy(0, 7);
-				printf("print\n");
+			gotoxy(START_X, START_Y - 3);
+			printf("score: %2d                                   heart: %3d ", score, heart);
 
+			if (wordtimer(t)) {
+				wordcnt++;
+				unprint_word_text(wordlisthead);
+				move_down(wordlisthead);
+				delete_bottom(&wordlisthead, &heart);
+				if (wordcnt >= STORY_WORD_CYCLE) {
+					wordcnt = 0;
+					Word tmpword;
+					tmpword.x = START_X + 15 * (rand() % 4);
+					tmpword.y = START_Y + 1;
+					strcpy(tmpword.text, generate_word(10 + level));
+					append_node(&wordlisthead, tmpword);
+				}
+				print_word_text(wordlisthead);
 			}
-			//if (_kbhit()) {
-			//	ch = _getch();
-			//	if (ch == 27) { // ESC, quit game
-			//		gotoxy(START_X, START_Y + 6);
-			//		printf("You quit the game.");
-			//		gotoxy(START_X, START_Y + 7);
-			//		printf("Press Enter to return to the lobby.");
-			//		while (_getch() != 13);
-			//		return;
-			//	}
-			//	else if (ch == 8) { // Backspace
-			//		if (idx > 0) {
-			//			gotoxy(START_X + 12 + idx, START_Y + 24);
-			//			printf("\b "); // Clear last character
-			//			idx--;
-			//		}
-			//	}
-			//	else if ('a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z') {
-			//		gotoxy(START_X + 12 + idx, START_Y + 24);
-			//		word[idx++] = ch;
-			//		printf("%c", ch);
-			//		if (idx >= SIZE) {
-			//			printf("\b \b");
-			//			idx--;
-			//		}
-			//	}
-			//	else if (ch == 13) { // Enter
-			//		word[idx] = '\0';
-			//		if (strcmp(word, answer) == 0) {
-			//			Beep(1108, 70);  // C6#
-			//			Beep(1318, 70);  // E6
-			//			score++;
-			//			if (score >= GAME_WORDLIMIT) {
-			//				gotoxy(START_X + 36, START_Y + 1);
-			//				printf("%2d", score);
-			//				break;
-			//			}
-			//		}
-			//		else {
-			//			Beep(196, 70);  // G3
-			//			Beep(196, 70);
-			//		}
-			//		wordtimer(TIMER_END); // Reset word timer
-			//	}
-			//}
+
+			if (_kbhit()) {
+				ch = _getch();
+				if (ch == 27) { // ESC, quit game
+					gotoxy(START_X, START_Y + 24);
+					printf("You quit the game.");
+					gotoxy(START_X, START_Y + 25);
+					printf("Press Enter to return to the lobby.");
+					while (_getch() != 13);
+					return;
+				}
+				else if (ch == 8) { // Backspace
+					if (idx > 0) {
+						gotoxy(START_X + 22 + idx, START_Y + 22);
+						printf("\b "); // Clear last character
+						idx--;
+					}
+				}
+				else if ('a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z') {
+					gotoxy(START_X + 22 + idx, START_Y + 22);
+					word[idx++] = ch;
+					printf("%c", ch);
+					if (idx >= SIZE) {
+						printf("\b \b");
+						idx--;
+					}
+				}
+				else if (ch == 13) { // Enter
+					word[idx] = '\0';
+					unprint_word_text(wordlisthead);
+					if (delete_node(&wordlisthead, word)) {
+						print_word_text(wordlisthead);
+						Beep(1108, 70);  // C6#
+						Beep(1318, 70);  // E6
+						score++;
+						if (score >= STORY_WORDLIMIT) {
+							gotoxy(START_X, START_Y - 3);
+							printf("score: %2d                                   heart: %3d ", score, heart);
+							break;
+						}
+					}
+					else {
+						print_word_text(wordlisthead);
+						Beep(196, 70);  // G3
+						Beep(196, 70);
+					}
+					gotoxy(START_X + 22, START_Y + 22);
+					printf("         ");
+					strcpy(word, "\0");
+					idx = 0; // Reset index after entering word
+				}
+			}
 		}
-		if (score >= GAME_WORDLIMIT) {
+		if (score >= STORY_WORDLIMIT) {
 			if (level >= 5) {
-				gotoxy(START_X, START_Y + 6);
-				printf("Congratulations! You completed all difficulties.");
-				Beep(587, 90);  // D5
-				Beep(739, 90);  // F5#
-				Beep(880, 90);  // A5
-				Beep(1108, 90);  // C6#
-				Beep(1174, 200); // D6
-				gotoxy(START_X, START_Y + 7);
-				printf("Press Enter to return to the lobby.");
+				level++;
+				printstory(level);
+				gotoxy(START_X, START_Y + 22);
+				printf("Press Enter to return to lobby");
 				while (_getch() != 13);
 				break;
 			}
-			gotoxy(START_X, START_Y + 6);
+			gotoxy(START_X, START_Y + 24);
 			printf("You win!");
 			Beep(587, 90);  // D5
 			Beep(739, 90);  // F5#
 			Beep(880, 90);  // A5
 			Beep(1108, 90);  // C6#
 			Beep(1174, 200); // D6
-			gotoxy(START_X, START_Y + 7);
-			printf("Press Enter to next difficulty.");
+			gotoxy(START_X, START_Y + 25);
+			printf("Press Enter to next level.");
 			while (_getch() != 13);
 			continue;
 		}
 		else {
-			gotoxy(START_X, START_Y + 6);
+			gotoxy(START_X, START_Y + 24);
 			printf("Lost the game. TOO SLOW!");
-			gotoxy(START_X, START_Y + 7);
+			gotoxy(START_X, START_Y + 25);
 			Beep(698, 90);  // F5
 			Beep(622, 90);  // D#5
 			Beep(587, 90);  // D5

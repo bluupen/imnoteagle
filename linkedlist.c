@@ -24,7 +24,7 @@ void append_node(Node** head, Word word) {
     curr->next = new_node;
 }
 
-// Delete all nodes where data == 1
+// Delete all nodes at bottom
 void delete_bottom(Node** head, int* heart) {
 	if (*head == NULL) return;
     while ((*head)->word.y == START_Y + 20) {
@@ -35,7 +35,7 @@ void delete_bottom(Node** head, int* heart) {
     }
 
     Node* curr = *head;
-    while (curr && curr->next) {
+    while (curr->next) {
         if (curr->next->word.y == START_Y + 20) {
             Node* tmp = curr->next;
             curr->next = tmp->next;
@@ -46,6 +46,28 @@ void delete_bottom(Node** head, int* heart) {
             curr = curr->next;
         }
     }
+}
+
+int delete_node(Node** head, char* str) {
+	if (*head == NULL) return 0;
+	while (strcmp((*head)->word.text, str) == 0) {
+		Node* tmp = *head;
+		*head = (*head)->next; // delete first node
+		free(tmp);
+		return 1;
+	}
+	Node* prev = *head;
+	Node* curr = (*head)->next;
+	while (curr) {
+		if (strcmp(curr->word.text, str) == 0) {
+			prev->next = curr->next; // delete current node
+			free(curr);
+			return 1;
+		}
+		prev = curr;
+		curr = curr->next;
+	}
+	return 0; // no node with str found
 }
 
 // Free all nodes
