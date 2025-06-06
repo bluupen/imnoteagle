@@ -354,7 +354,7 @@ void lobby(int* gametype) {
 }
 
 void normalmode(int _difficulty) {
-	static int wordtimelimit[] = { 6000, 5000, 5000 };
+	const int wordtimelimit[] = { 6000, 5000, 5000 };
 	char answer[SIZE];
 	char word[SIZE];
 	int difficulty = _difficulty - 1, idx = 0, score = 0;
@@ -520,7 +520,7 @@ void storymode() {
 		}
 	}
 
-	static int stagetimelimit[] = { 1000, 800, 800, 800, 700 };
+	const int stagetimelimit[] = { 1000, 800, 800, 800, 700 };
 	char word[SIZE];
 	int stage = g_settings.story_startstage - 1, idx, score, heart;
 	DWORD t = 0;
