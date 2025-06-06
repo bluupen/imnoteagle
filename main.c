@@ -14,6 +14,23 @@
 #define GAME_WORDLIMIT 2
 #define TIMER_END -1
 
+#define COLOR_PRINTF(color,str) printf("\033[0;"#color"m" str)
+#define COLOR_BRIGHT_CYAN 96
+#define COLOR_BLUE 34
+#define COLOR_GRAY 90
+#define COLOR_YELLOW 33
+#define COLOR_BRIGHT_GREEN 92
+#define COLOR_MAGENTA 35
+#define COLOR_RED 31
+#define COLOR_WHITE 37
+//Black  : \033[0;30m
+
+typedef struct Word {
+	char text[SIZE];
+	int x;
+	int y;
+} Word;
+
 void gotoxy(int x, int y);
 int gametimer(int time);
 int wordtimer(int time);
@@ -22,6 +39,10 @@ char* generate_word(int _difficulty);
 void lobby(int* gametype);
 void normalmode(int difficulty);
 void storymode();
+
+// story.c
+void start_story_mode();
+
 
 void test() {
 	while (1) {
@@ -78,7 +99,7 @@ void gotoxy(int x, int y) {
 }
 
 int gametimer(int time) {
-	static int starttime = 0;
+	static DWORD starttime = 0;
 	if (time == TIMER_END) {
 		starttime = timeGetTime() - 1000000; // in next call, will return 1
 		return TIMER_END;
@@ -92,7 +113,7 @@ int gametimer(int time) {
 }
 
 int wordtimer(int time) {
-	static int starttime = 0;
+	static DWORD starttime = 0;
 	if (time == TIMER_END) {
 		starttime = timeGetTime() - 1000000; // in next call, will return 1
 		return TIMER_END;
@@ -129,29 +150,64 @@ char* generate_word(int difficulty) {
 	"striker", "turning", "urgency", "variety", "winning", "xeroxes", "youling", "zippers", "archive", "bargain",
 	"contest", "deliver", "exclude", "fiction", "gestalt", "harvest", "invited", "jaggers", "kindled", "largely",
 	"morning", "notions", "offbeat", "passage", "quickly", "respect", "sandbox", "talking", "unclear", "violent"
-	"abandoning", "bachelorly", "caballero", "dandelion", "earthiest", "fabulists", "gallantly", "habitudes", "idealists", "jailbirds",
-	"kaleidoses", "laborious", "macintosh", "narrating", "oblivious", "packaging", "quadrants", "radiators", "sabotaged", "tailoring",
-	"umbilical", "vacillate", "wanderers", "xenoliths", "youngster", "zealotism", "absorbent", "benchmark", "calamitys", "delegator",
-	"education", "fellowship", "grapevine", "hardcover", "ignitions", "jubilance", "kilobytes", "librarian", "mainlands", "navigated",
-	"objective", "paintwork", "quarreled", "ranchland", "sailboats", "tailwinds", "undertook", "vandalism", "wanderlust", "xylophones",
-	"youngling", "zeppelinz", "abduction", "blueprint", "comically", "discharge", "elsewhere", "figurines", "graceless", "hatchback",
-	"idealistz", "judiciary", "kingships", "lifecycle", "mainframe", "newsletter", "offspring", "portables", "quickstep", "roadblock",
-	"snowbound", "telepathy", "urbanites", "violation", "withdrawn", "xenocryst", "yellowing", "zookeeper", "aardvarks", "breeziest",
-	"cataloged", "daydreams", "elevating", "flowerbed", "greenback", "housework", "intellect", "junctures", "keystones", "lifeboats",
-	"marshland", "nobleness", "outsiders", "paperback", "questions", "rivalries", "screaming", "tradition", "unleashed", "volcanics"
+	"aardvarks", "abilities", "absolutes", "admirable", "backpacks", "ballerina", "bankrupts", "baseboard", "campfires", "capsizing",
+	"caretaker", "cellulose", "daffodils", "dashboard", "dedicated", "deviating", "education", "elevators", "elsewhere", "enlarging",
+	"factories", "faltering", "favorable", "fireplace", "gardening", "gasolines", "gearshift", "goldsmith", "hairdryer", "hallucins",
+	"hardcover", "harpooner", "idealists", "ignitions", "isolation", "immensity", "javelinas", "jealously", "jellyfish", "judgement",
+	"kangaroos", "keepsakes", "keyboards", "kickstand", "landscape", "latchhook", "librarian", "lightbulb", "machinery", "mainframe",
+	"marigolds", "musicians", "narrative", "navigator", "negligent", "notorious", "oakmosses", "oblivious", "offending", "omnivores",
+	"packaging", "pamphlets", "parallels", "pervasive", "quadrants", "qualified", "quickstep", "quotables", "radiation", "rainstorm",
+	"receptors", "relevance", "sailboats", "signature", "tailwinds", "telephone", "tenderize", "traveling", "ulcerated", "ululation",
+	"urbanized", "vacations", "valentine", "vaporized", "vegetable", "wanderers", "waterfall", "welcoming", "windswept", "xenoliths",
+	"xenograft", "xerophobe", "yearbooks", "yellowing", "youngster", "yieldings", "zealously", "zeppelins", "zookeeper", "zucchinis"
 	};
-
-
 	static char word[SIZE];
+
+	if (difficulty > 10) {
+		switch (difficulty) {
+		case 11:
+			strcpy(word, words[rand() % 100]);
+			break;
+		case 12:
+			strcpy(word, words[rand() % 100]);
+			break;
+		case 13:
+			strcpy(word, words[100 + rand() % 100]);
+			break;
+		case 14:
+			if (rand() % 100 < 30) {
+				char temp[SIZE];
+				strcmp(temp, words[rand() % 100 + 200]);
+				for (int i = 0; i < 7; i++) 
+					temp[6 - i] = word[i];
+				word[7] = '\0';
+			}
+			else
+				strcpy(word, words[100 + rand() % 100]);
+			break;
+		case 15:
+			if (rand() % 100 < 30) {
+				char temp[SIZE];
+				strcmp(temp, words[rand() % 100 + 200]);
+				for (int i = 0; i < 7; i++)
+					temp[6 - i] = word[i];
+				word[7] = '\0';
+			}
+			else
+				strcpy(word, words[200 + rand() % 100]);
+			break;
+		}
+		return word;
+	}
+
 	if (rand() % 2) {
 		strcpy(word, words[rand() % 100 + (difficulty - 1) * 100]);
 	}
 	else {
 		for (int i = 0; i < 3 + difficulty * 2; i++) {
-			int is_upper = rand() % 2;
-			word[i] = (is_upper ? 'A' : 'a') + rand() % 26;
+			word[i] = (rand() % 2 ? 'A' : 'a') + rand() % 26;
 		}
-		word[SIZE - 1] = '\0';
+		word[3 + difficulty * 2] = '\0';
 	}
 	return word;
 }
@@ -278,7 +334,8 @@ void normalmode(int _difficulty) {
 	static int wordtimelimit[] = { 6000, 5000, 5000 };
 	char answer[SIZE];
 	char word[SIZE];
-	int difficulty = _difficulty - 1, idx = 0, score = 0, t;
+	int difficulty = _difficulty - 1, idx = 0, score = 0;
+	DWORD t = 0;
 	char ch;
 
 	while (difficulty < 3) {
@@ -298,8 +355,8 @@ void normalmode(int _difficulty) {
 
 		gametimer(0);
 		wordtimer(0);
-		int gamestart = timeGetTime();
-		int wordstart = timeGetTime();
+		DWORD gamestart = timeGetTime();
+		DWORD wordstart = timeGetTime();
 
 		// 시작할때 첫 단어 생성
 		strcpy(answer, generate_word(difficulty));
@@ -423,12 +480,133 @@ void normalmode(int _difficulty) {
 }
 
 void storymode() {
-	gotoxy(10, 3);
-	printf("Story mode is not implemented yet.");
-	gotoxy(10, 4);
-	printf("Press any key to return to the lobby.");
-	_getch();
-	// lets make this
+	//start_story_mode();
+
+
+	static int leveltimelimit[] = { 1000, 800, 800, 800, 700 };
+	char answer[SIZE];
+	char word[SIZE];
+	int level = 0, idx = 0, score = 0, heart = 3;
+	DWORD t = 0;
+	char ch;
+
+	while (level < 5) {
+		Word* wordlist[30];
+		level++;
+		score = 0;
+		idx = 0;		
+		heart = 3;
+
+		system("cls");
+		gotoxy(START_X, START_Y - 1);
+		switch (level) {
+		case 1: printf("================  [  Level 1  ]  ================"); break;
+		case 2: printf("================  [  Level 2  ]  ================"); break;
+		case 3: printf("================  [  Level 3  ]  ================"); break;
+		case 4: printf("================  [  Level 4  ]  ================"); break;
+		case 5: printf("================  [   BOSS    ]  ================"); break;
+		default: break;
+		}
+
+		wordtimer(0);
+		DWORD gamestart = timeGetTime();
+		DWORD wordstart = timeGetTime();
+		t = leveltimelimit[level - 1];
+
+		while (heart) {
+			if (wordtimer(t)) {
+				Word* tempword = (Word*)malloc(sizeof(Word));
+
+			}
+			if (_kbhit()) {
+				ch = _getch();
+				if (ch == 27) { // ESC, quit game
+					gotoxy(START_X, START_Y + 6);
+					printf("You quit the game.");
+					gotoxy(START_X, START_Y + 7);
+					printf("Press Enter to return to the lobby.");
+					while (_getch() != 13);
+					return;
+				}
+				else if (ch == 8) { // Backspace
+					if (idx > 0) {
+						gotoxy(START_X + 12 + idx, START_Y + 24);
+						printf("\b "); // Clear last character
+						idx--;
+					}
+				}
+				else if ('a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z') {
+					gotoxy(START_X + 12 + idx, START_Y + 24);
+					word[idx++] = ch;
+					printf("%c", ch);
+					if (idx >= SIZE) {
+						printf("\b \b");
+						idx--;
+					}
+				}
+				else if (ch == 13) { // Enter
+					word[idx] = '\0';
+					if (strcmp(word, answer) == 0) {
+						Beep(1108, 70);  // C6#
+						Beep(1318, 70);  // E6
+						score++;
+						if (score >= GAME_WORDLIMIT) {
+							gotoxy(START_X + 36, START_Y + 1);
+							printf("%2d", score);
+							break;
+						}
+					}
+					else {
+						Beep(196, 70);  // G3
+						Beep(196, 70);
+					}
+					wordtimer(TIMER_END); // Reset word timer
+				}
+			}
+		}
+		if (score >= GAME_WORDLIMIT) {
+			if (level >= 5) {
+				gotoxy(START_X, START_Y + 6);
+				printf("Congratulations! You completed all difficulties.");
+				Beep(587, 90);  // D5
+				Beep(739, 90);  // F5#
+				Beep(880, 90);  // A5
+				Beep(1108, 90);  // C6#
+				Beep(1174, 200); // D6
+				gotoxy(START_X, START_Y + 7);
+				printf("Press Enter to return to the lobby.");
+				while (_getch() != 13);
+				break;
+			}
+			gotoxy(START_X, START_Y + 6);
+			printf("You win!");
+			Beep(587, 90);  // D5
+			Beep(739, 90);  // F5#
+			Beep(880, 90);  // A5
+			Beep(1108, 90);  // C6#
+			Beep(1174, 200); // D6
+			gotoxy(START_X, START_Y + 7);
+			printf("Press Enter to next difficulty.");
+			while (_getch() != 13);
+			continue;
+		}
+		else {
+			gotoxy(START_X, START_Y + 6);
+			printf("Lost the game. TOO SLOW!");
+			gotoxy(START_X, START_Y + 7);
+			Beep(698, 90);  // F5
+			Beep(622, 90);  // D#5
+			Beep(587, 90);  // D5
+			Beep(523, 90);  // C5
+			Beep(196, 90);  // G3
+			Beep(196, 200);  // G3
+			printf("Press Enter to return to the lobby.");
+			while (_getch() != 13);
+			break;
+		}
+	}
+
+	return;
 
 
 	return;
