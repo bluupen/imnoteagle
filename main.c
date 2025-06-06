@@ -31,6 +31,11 @@ typedef struct Word {
 	int y;
 } Word;
 
+typedef struct Node {
+	Word word;
+	struct Node* next;
+} Node;
+
 void gotoxy(int x, int y);
 int gametimer(int time);
 int wordtimer(int time);
@@ -42,7 +47,16 @@ void storymode();
 
 // story.c
 void start_story_mode();
+void free_list(Node** head);
 
+// linkedlist.c
+void append_node(Node** head, Word word);
+void delete_bottom(Node** head, int* heart);
+void free_list(Node** head);
+void move_down(Node* head);
+void print_list(Node* head);
+void print_word_text(Node* head);
+void unprint_word_text(Node* head);
 
 void test() {
 	while (1) {
@@ -176,10 +190,10 @@ char* generate_word(int difficulty) {
 			break;
 		case 14:
 			if (rand() % 100 < 30) {
-				char temp[SIZE];
-				strcmp(temp, words[rand() % 100 + 200]);
+				char tmp[SIZE];
+				strcmp(tmp, words[rand() % 100 + 200]);
 				for (int i = 0; i < 7; i++) 
-					temp[6 - i] = word[i];
+					tmp[6 - i] = word[i];
 				word[7] = '\0';
 			}
 			else
@@ -187,10 +201,10 @@ char* generate_word(int difficulty) {
 			break;
 		case 15:
 			if (rand() % 100 < 30) {
-				char temp[SIZE];
-				strcmp(temp, words[rand() % 100 + 200]);
+				char tmp[SIZE];
+				strcmp(tmp, words[rand() % 100 + 200]);
 				for (int i = 0; i < 7; i++)
-					temp[6 - i] = word[i];
+					tmp[6 - i] = word[i];
 				word[7] = '\0';
 			}
 			else
@@ -326,8 +340,6 @@ void lobby(int* gametype) {
 	}
 
 	system("cls");
-	
-	return;
 }
 
 void normalmode(int _difficulty) {
@@ -475,8 +487,6 @@ void normalmode(int _difficulty) {
 			break;
 		}
 	}
-
-	return;
 }
 
 void storymode() {
@@ -491,7 +501,7 @@ void storymode() {
 	char ch;
 
 	while (level < 5) {
-		Word* wordlist[30];
+		Word* wordlisthead = NULL;
 		level++;
 		score = 0;
 		idx = 0;		
@@ -500,10 +510,7 @@ void storymode() {
 		system("cls");
 		gotoxy(START_X, START_Y - 1);
 		switch (level) {
-		case 1: printf("================  [  Level 1  ]  ================"); break;
-		case 2: printf("================  [  Level 2  ]  ================"); break;
-		case 3: printf("================  [  Level 3  ]  ================"); break;
-		case 4: printf("================  [  Level 4  ]  ================"); break;
+		case 1:	case 2:	case 3:	case 4: printf("================  [  Level %d  ]  ================", level); break;
 		case 5: printf("================  [   BOSS    ]  ================"); break;
 		default: break;
 		}
@@ -512,57 +519,77 @@ void storymode() {
 		DWORD gamestart = timeGetTime();
 		DWORD wordstart = timeGetTime();
 		t = leveltimelimit[level - 1];
+		wordtimer(TIMER_END);
 
+		int cnt = 0;
 		while (heart) {
 			if (wordtimer(t)) {
-				Word* tempword = (Word*)malloc(sizeof(Word));
+				gotoxy(0, 0);
+				printf("working #%d\n",cnt++);
+				unprint_word_text(wordlisthead);
+				gotoxy(0, 1);
+				printf("unprint\n");
+				move_down(wordlisthead);
+				printf("movedown\n");
+				delete_bottom(&wordlisthead, &heart);
+				printf("delete\n");
+				Word tmpword;
+				tmpword.x = START_X + 15 * (rand() % 4);
+				tmpword.y = START_Y + 3;
+				strcpy(tmpword.text, generate_word(level));
+				printf("generate\n");
+				append_node(&wordlisthead, tmpword);
+				printf("append\n");
+				print_word_text(wordlisthead);
+				gotoxy(0, 7);
+				printf("print\n");
 
 			}
-			if (_kbhit()) {
-				ch = _getch();
-				if (ch == 27) { // ESC, quit game
-					gotoxy(START_X, START_Y + 6);
-					printf("You quit the game.");
-					gotoxy(START_X, START_Y + 7);
-					printf("Press Enter to return to the lobby.");
-					while (_getch() != 13);
-					return;
-				}
-				else if (ch == 8) { // Backspace
-					if (idx > 0) {
-						gotoxy(START_X + 12 + idx, START_Y + 24);
-						printf("\b "); // Clear last character
-						idx--;
-					}
-				}
-				else if ('a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z') {
-					gotoxy(START_X + 12 + idx, START_Y + 24);
-					word[idx++] = ch;
-					printf("%c", ch);
-					if (idx >= SIZE) {
-						printf("\b \b");
-						idx--;
-					}
-				}
-				else if (ch == 13) { // Enter
-					word[idx] = '\0';
-					if (strcmp(word, answer) == 0) {
-						Beep(1108, 70);  // C6#
-						Beep(1318, 70);  // E6
-						score++;
-						if (score >= GAME_WORDLIMIT) {
-							gotoxy(START_X + 36, START_Y + 1);
-							printf("%2d", score);
-							break;
-						}
-					}
-					else {
-						Beep(196, 70);  // G3
-						Beep(196, 70);
-					}
-					wordtimer(TIMER_END); // Reset word timer
-				}
-			}
+			//if (_kbhit()) {
+			//	ch = _getch();
+			//	if (ch == 27) { // ESC, quit game
+			//		gotoxy(START_X, START_Y + 6);
+			//		printf("You quit the game.");
+			//		gotoxy(START_X, START_Y + 7);
+			//		printf("Press Enter to return to the lobby.");
+			//		while (_getch() != 13);
+			//		return;
+			//	}
+			//	else if (ch == 8) { // Backspace
+			//		if (idx > 0) {
+			//			gotoxy(START_X + 12 + idx, START_Y + 24);
+			//			printf("\b "); // Clear last character
+			//			idx--;
+			//		}
+			//	}
+			//	else if ('a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z') {
+			//		gotoxy(START_X + 12 + idx, START_Y + 24);
+			//		word[idx++] = ch;
+			//		printf("%c", ch);
+			//		if (idx >= SIZE) {
+			//			printf("\b \b");
+			//			idx--;
+			//		}
+			//	}
+			//	else if (ch == 13) { // Enter
+			//		word[idx] = '\0';
+			//		if (strcmp(word, answer) == 0) {
+			//			Beep(1108, 70);  // C6#
+			//			Beep(1318, 70);  // E6
+			//			score++;
+			//			if (score >= GAME_WORDLIMIT) {
+			//				gotoxy(START_X + 36, START_Y + 1);
+			//				printf("%2d", score);
+			//				break;
+			//			}
+			//		}
+			//		else {
+			//			Beep(196, 70);  // G3
+			//			Beep(196, 70);
+			//		}
+			//		wordtimer(TIMER_END); // Reset word timer
+			//	}
+			//}
 		}
 		if (score >= GAME_WORDLIMIT) {
 			if (level >= 5) {
@@ -605,9 +632,4 @@ void storymode() {
 			break;
 		}
 	}
-
-	return;
-
-
-	return;
 }

@@ -26,6 +26,17 @@
 #define COLOR_WHITE 37
 //Black  : \033[0;30m
 
+typedef struct Word {
+	char text[SIZE];
+	int x;
+	int y;
+} Word;
+
+typedef struct Node {
+	Word word;
+	struct Node* next;
+} Node;
+
 void gotoxy(int x, int y);
 int gametimer(int time);
 int wordtimer(int time);
