@@ -25,13 +25,15 @@ void append_node(Node** head, Word word) {
 }
 
 // Delete all nodes at bottom
-void delete_bottom(Node** head, int* heart) {
-	if (*head == NULL) return;
+int delete_bottom(Node** head, int* heart) {
+	if (*head == NULL) return 0;
+	int if_deleted = 0;
     while ((*head)->word.y == START_Y + 20) {
         Node* tmp = *head;
         *head = (*head)->next;
         free(tmp); // free formal first node
 		(*heart)--;
+		if_deleted = 1;
     }
 
     Node* curr = *head;
@@ -41,11 +43,13 @@ void delete_bottom(Node** head, int* heart) {
             curr->next = tmp->next;
             free(tmp);
 			(*heart)--;
+			if_deleted = 1;
         }
         else {
             curr = curr->next;
         }
     }
+	return if_deleted;
 }
 
 int delete_node(Node** head, char* str) {

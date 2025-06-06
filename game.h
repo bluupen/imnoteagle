@@ -17,15 +17,11 @@
 #define STORY_WORD_CYCLE 4 // generate new word every CYCLE times of drops
 
 #define COLOR_PRINTF(color,str) printf("\033[0;"#color"m" str)
-#define COLOR_BRIGHT_CYAN 96
-#define COLOR_BLUE 34
-#define COLOR_GRAY 90
-#define COLOR_YELLOW 33
-#define COLOR_BRIGHT_GREEN 92
-#define COLOR_MAGENTA 35
-#define COLOR_RED 31
-#define COLOR_WHITE 37
-//Black  : \033[0;30m
+// red 31
+// yellow 33
+// bright red 91
+// bright blue 94
+//Black(30) : \033[0;30m
 
 typedef struct Word {
 	char text[SIZE];
@@ -62,7 +58,7 @@ void print_str(char* str);
 
 // linkedlist.c
 void append_node(Node** head, Word word);
-void delete_bottom(Node** head, int* heart);
+int delete_bottom(Node** head, int* heart);
 int delete_node(Node** head, char* str);
 void free_list(Node** head);
 void move_down(Node* head);

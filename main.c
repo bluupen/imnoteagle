@@ -130,7 +130,7 @@ char* generate_word(int difficulty) {
 			strcpy(word, words[100 + rand() % 100]);
 			break;
 		case 14:
-			if (rand() % 100 < 30) {
+			if (rand() % 100 < 25) {
 				char tmp[SIZE];
 				strcpy(tmp, words[100 + rand() % 100]);
 				for (int i = 0; i < 7; i++) 
@@ -141,7 +141,7 @@ char* generate_word(int difficulty) {
 				strcpy(word, words[100 + rand() % 100]);
 			break;
 		case 15:
-			if (rand() % 100 < 30) {
+			if (rand() % 100 < 25) {
 				char tmp[SIZE];
 				strcpy(tmp, words[100 + rand() % 100]);
 				for (int i = 0; i < 7; i++)
@@ -155,7 +155,7 @@ char* generate_word(int difficulty) {
 		return word;
 	}
 	else if (1 <= difficulty && difficulty <= 3) {
-		if (rand() % 2) {
+		if (rand() % 4) {
 			strcpy(word, words[rand() % 100 + (difficulty - 1) * 100]);
 		}
 		else {
@@ -169,20 +169,24 @@ char* generate_word(int difficulty) {
 	return 0; // error
 }
 
-
 void settings() {
 	int option = 1;
 	char ch;
 	gotoxy(START_X, START_Y + 1);
-	printf("    storymode start : Stage %d         ", g_settings.story_startstage);
+	printf("    storymode start : ");
+	COLOR_PRINTF(33, "");
+	printf("Stage %d         ", g_settings.story_startstage);
+	COLOR_PRINTF(0, "");
 	if (g_settings.story_startstage == 5) { // boss
-		gotoxy(START_X + 31, START_Y + 1);
-		printf("BOSS");
+		gotoxy(START_X + 22, START_Y + 1);
+		COLOR_PRINTF(31, "Stage BOSS");
+		COLOR_PRINTF(0, "");
 	}
 	gotoxy(START_X, START_Y + 2);
 	printf("         show story : ");
-	if (g_settings.view_story) printf("true  ");
-	else printf("false ");
+	if (g_settings.view_story) COLOR_PRINTF(94, "true  ");
+	else COLOR_PRINTF(91, "false ");
+	COLOR_PRINTF(0, "");
 	gotoxy(START_X, START_Y + 3);
 	printf("         return to lobby           ");
 	gotoxy(START_X, START_Y + 4);
@@ -215,20 +219,24 @@ void settings() {
 					g_settings.story_startstage++;
 					if (g_settings.story_startstage > 5) g_settings.story_startstage = 1;
 					if (g_settings.story_startstage == 5) { // boss
-						gotoxy(START_X + 27, START_Y + 1);
-						printf(" BOSS    ");
+						gotoxy(START_X + 22, START_Y + 1);
+						COLOR_PRINTF(31, "Stage BOSS      ");
+						COLOR_PRINTF(0, "");
 					}
 					else {
-						gotoxy(START_X + 27, START_Y + 1);
-						printf(" %d       ", g_settings.story_startstage);
+						gotoxy(START_X + 22, START_Y + 1);
+						COLOR_PRINTF(33, "");
+						printf("Stage %d       ", g_settings.story_startstage);
+						COLOR_PRINTF(0, "");
 					}
 					break;
 				case 2:
 					g_settings.view_story++;
 					if (g_settings.view_story > 1) g_settings.view_story = 0;
 					gotoxy(START_X + 22, START_Y + 2);
-					if (g_settings.view_story) printf("true  ");
-					else printf("false ");
+					if (g_settings.view_story) COLOR_PRINTF(94, "true  ");
+					else COLOR_PRINTF(91, "false ");
+					COLOR_PRINTF(0, "");
 					break;
 				case 3:
 					return;
@@ -525,6 +533,7 @@ void storymode() {
 		idx = 0;
 		heart = 4;
 		
+		// show stories
 		if (g_settings.view_story) {
 			system("cls");
 			printstory(stage);
@@ -539,7 +548,7 @@ void storymode() {
 		case 1:	case 2:	case 3:	case 4:
 			printf("===================  [  ");
 			COLOR_PRINTF(33, "");
-			printf("Stage % d", stage);
+			printf("Stage %d", stage);
 			COLOR_PRINTF(0, "");
 			printf("  ]  ==================");
 			break;
@@ -568,14 +577,28 @@ void storymode() {
 			gotoxy(START_X, START_Y - 3);
 			printf("score: %2d                                   ", score);
 			COLOR_PRINTF(31, "");
-			printf("heart: %3d ", score);
+			for (int i = 0; i < 4; i++) {
+				if (4 - heart > i) printf("♡");
+				else printf("♥");
+			}
 			COLOR_PRINTF(0, "");
 
 			if (wordtimer(t)) {
 				wordcnt++;
 				unprint_word_text(wordlisthead);
 				move_down(wordlisthead);
-				delete_bottom(&wordlisthead, &heart);
+				if (delete_bottom(&wordlisthead, &heart)) {
+					Beep(130, 70); // C3
+					Beep(130, 70);
+					gotoxy(START_X, START_Y - 3);
+					printf("score: %2d                                   ", score);
+					COLOR_PRINTF(31, "");
+					for (int i = 0; i < 4; i++) {
+						if (4 - heart > i) printf("♡");
+						else printf("♥");
+					}
+					COLOR_PRINTF(0, "");
+				}
 				if (wordcnt >= STORY_WORD_CYCLE) {
 					wordcnt = 0;
 					Word tmpword;
@@ -623,7 +646,13 @@ void storymode() {
 						score++;
 						if (score >= STORY_WORDLIMIT) {
 							gotoxy(START_X, START_Y - 3);
-							printf("score: %2d                                   heart: %3d ", score, heart);
+							printf("score: %2d                                   ", score);
+							COLOR_PRINTF(31, "");
+							for (int i = 0; i < 4; i++) {
+								if (4 - heart > i) printf("♡");
+								else printf("♥");
+							}
+							COLOR_PRINTF(0, "");
 							break;
 						}
 					}
@@ -645,26 +674,26 @@ void storymode() {
 				if (g_settings.view_story) {
 					printstory(stage);
 					gotoxy(START_X, START_Y + 22);
-					printf("Press Enter to return to lobby");
+					printf("로비로 돌아가기 (Enter)");
 					while (_getch() != 13);
 				}
 				break;
 			}
 			gotoxy(START_X, START_Y + 24);
-			printf("You win!");
+			printf("복원에 성공했습니다!!");
 			Beep(587, 90);  // D5
 			Beep(739, 90);  // F5#
 			Beep(880, 90);  // A5
 			Beep(1108, 90);  // C6#
 			Beep(1174, 200); // D6
 			gotoxy(START_X, START_Y + 25);
-			printf("Press Enter to next stage.");
+			printf("다음 스테이지 (Enter)");
 			while (_getch() != 13);
 			continue;
 		}
 		else {
 			gotoxy(START_X, START_Y + 24);
-			printf("Lost the game. TOO SLOW!");
+			printf("복원에 실패했습니다. 너무 느려요!!");
 			gotoxy(START_X, START_Y + 25);
 			Beep(698, 90);  // F5
 			Beep(622, 90);  // D#5
@@ -672,7 +701,7 @@ void storymode() {
 			Beep(523, 90);  // C5
 			Beep(196, 90);  // G3
 			Beep(196, 200);  // G3
-			printf("Press Enter to return to the lobby.");
+			printf("로비로 돌아가기 (Enter)");
 			while (_getch() != 13);
 			break;
 		}
