@@ -38,6 +38,12 @@ typedef struct Node {
 	struct Node* next;
 } Node;
 
+typedef struct GameSettings {
+	int story_startstage;
+	int view_story;
+	int is_normal_cleared;
+} GameSettings;
+
 
 // main.c
 void gotoxy(int x, int y);
@@ -45,12 +51,14 @@ int gametimer(int time);
 int wordtimer(int time);
 char* generate_word(int _difficulty);
 
+void settings();
 void lobby(int* gametype);
 void normalmode(int difficulty);
 void storymode();
 
 // story.c
 void printstory(int i);
+void print_str(char* str);
 
 // linkedlist.c
 void append_node(Node** head, Word word);

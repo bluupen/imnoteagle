@@ -8,6 +8,7 @@ void gotoxy(int x, int y) {
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
 }
 
+
 int main() {
     const int x = 40;       // 글자 떨어질 X 좌표
     const int bottom = 20;  // 글자가 멈출 Y 좌표

@@ -2,22 +2,23 @@
 
 void test() {
 	while (1) {
-		Beep(587, 90);  // D5
-		Beep(739, 90);  // F5#
-		Beep(880, 90);  // A5
-		Beep(1108, 90);  // C6#
-		Beep(1174, 200); // C6 (hold last note longer)
-		Sleep(1000);
-		Beep(698, 90);  // F5
-		Beep(622, 90);  // D#5
-		Beep(587, 90);  // D5
-		Beep(523, 90);  // C5
-		Beep(392, 200);  // G4 (lower final note, held longer)
-		while (_getch() != 27); // Wait for ESC to exit
-
+		COLOR_PRINTF(31, "hello\n");
+		COLOR_PRINTF(33, "hello\n");
+		COLOR_PRINTF(34, "hello\n");
+		COLOR_PRINTF(35, "hello\n");
+		COLOR_PRINTF(36, "hello\n");
+		COLOR_PRINTF(37, "hello\n");
+		COLOR_PRINTF(32, "hello\n");
+		while (_getch()  != 27);
 	}
 }
  
+GameSettings g_settings = { 
+	1, // storymode starting stage
+	1, // if show story
+	0 // if ever clear normal mode
+};
+
 int main() {
 	// no more cursor blinking
 	CONSOLE_CURSOR_INFO cursorInfo = { 0, };
@@ -83,8 +84,6 @@ int wordtimer(int time) {
 }
 
 char* generate_word(int difficulty) {
-	// Generate a random word based on difficulty
-	// features to make later: list of words and difficulty levels
 	static const char* words[300] = {
 	"apple", "brave", "chair", "dream", "eagle", "flame", "grape", "heart", "ideal", "jelly",
 	"knock", "lemon", "magic", "night", "ocean", "piano", "queen", "raven", "smile", "tiger",
@@ -170,6 +169,76 @@ char* generate_word(int difficulty) {
 	return 0; // error
 }
 
+
+void settings() {
+	int option = 1;
+	char ch;
+	gotoxy(START_X, START_Y + 1);
+	printf("    storymode start : Stage %d         ", g_settings.story_startstage);
+	if (g_settings.story_startstage == 5) { // boss
+		gotoxy(START_X + 31, START_Y + 1);
+		printf("BOSS");
+	}
+	gotoxy(START_X, START_Y + 2);
+	printf("         show story : ");
+	if (g_settings.view_story) printf("true  ");
+	else printf("false ");
+	gotoxy(START_X, START_Y + 3);
+	printf("         return to lobby           ");
+	gotoxy(START_X, START_Y + 4);
+	printf("                        ");
+	while (1) {
+		gotoxy(START_X, START_Y + option);
+		printf(">>");
+		if (_kbhit()) {
+			Beep(392, 50); // G4
+			ch = _getch();
+			if (ch == -32) {
+				gotoxy(START_X, START_Y + option);
+				printf("  ");
+				ch = _getch();
+				switch (ch) {
+				case 72: // Up arrow
+					(option)--;
+					if (option < 1) option = 3;
+					break;
+				case 80: // Down arrow
+					(option)++;
+					if (option > 3) option = 1;
+					break;
+				default: break;
+				}
+			}
+			else if (ch == 13) { // Enter key
+				switch (option) {
+				case 1:
+					g_settings.story_startstage++;
+					if (g_settings.story_startstage > 5) g_settings.story_startstage = 1;
+					if (g_settings.story_startstage == 5) { // boss
+						gotoxy(START_X + 27, START_Y + 1);
+						printf(" BOSS    ");
+					}
+					else {
+						gotoxy(START_X + 27, START_Y + 1);
+						printf(" %d       ", g_settings.story_startstage);
+					}
+					break;
+				case 2:
+					g_settings.view_story++;
+					if (g_settings.view_story > 1) g_settings.view_story = 0;
+					gotoxy(START_X + 22, START_Y + 2);
+					if (g_settings.view_story) printf("true  ");
+					else printf("false ");
+					break;
+				case 3:
+					return;
+				default: break;
+				}
+			}
+		}
+	}
+}
+
 void lobby(int* gametype) {
 	int option = 1; // 1: normal mode, 2: story mode, 3: tooltip, 4: exit
 	char ch;
@@ -183,7 +252,7 @@ void lobby(int* gametype) {
 	gotoxy(START_X, START_Y + 2);
 	printf("        2. Story Mode");
 	gotoxy(START_X, START_Y + 3);
-	printf("        3. Tooltip");
+	printf("        3. Settings");
 	gotoxy(START_X, START_Y + 4);
 	printf("        4. Exit");
 	while (1) {
@@ -253,23 +322,13 @@ void lobby(int* gametype) {
 					*gametype = 4;
 					break;
 				case 3:
-					system("cls");
-					gotoxy(START_X, START_Y + 6);
-					printf("This is a typing game where you type words as fast as you can.");
-					gotoxy(START_X, START_Y + 7);
-					printf("Press ESC to return to the lobby");
-					while (_getch() != 27);
-					system("cls");
-					gotoxy(START_X, START_Y - 1);
-					printf("     <  I'm not Eagle!!  >");
-					gotoxy(START_X, START_Y);
-					printf("-------------------------------");
+					settings();
 					gotoxy(START_X, START_Y + 1);
-					printf("        1. Normal Mode");
+					printf("        1. Normal Mode           ");
 					gotoxy(START_X, START_Y + 2);
-					printf("        2. Story Mode");
+					printf("        2. Story Mode            ");
 					gotoxy(START_X, START_Y + 3);
-					printf("        3. Tooltip");
+					printf("        3. Settings              ");
 					gotoxy(START_X, START_Y + 4);
 					printf("        4. Exit");
 					continue;
@@ -390,6 +449,7 @@ void normalmode(int _difficulty) {
 		}
 		if (score >= NORMAL_WORDLIMIT) {
 			if (difficulty >= 3) {
+				g_settings.is_normal_cleared = 1;
 				gotoxy(START_X, START_Y + 6);
 				printf("Congratulations! You completed all difficulties.");
 				Beep(587, 90);  // D5
@@ -432,31 +492,64 @@ void normalmode(int _difficulty) {
 }
 
 void storymode() {
-	static int leveltimelimit[] = { 1000, 800, 800, 800, 700 };
-	char answer[SIZE];
+	if (g_settings.is_normal_cleared == 0) {
+		if (g_settings.story_startstage == 5 && g_settings.view_story == 0) g_settings.is_normal_cleared = 1;
+		else {
+			system("cls");
+			gotoxy(START_X, START_Y);
+			COLOR_PRINTF(31, "");
+			printf("(Error) CoreNet: You are NOT Authorized to Access.");
+			COLOR_PRINTF(0, "");
+			gotoxy(START_X, START_Y + 2);
+			printf("you have to clear Normal Mode to access.");
+			gotoxy(START_X, START_Y + 3);
+			printf("returning to the lobby...");
+			Beep(130, 70);  // C3
+			Beep(130, 70);
+			Beep(130, 70);
+			Sleep(5000);
+			return;
+		}
+	}
+
+	static int stagetimelimit[] = { 1000, 800, 800, 800, 700 };
 	char word[SIZE];
-	int level = 0, idx, score, heart;
+	int stage = g_settings.story_startstage - 1, idx, score, heart;
 	DWORD t = 0;
 	char ch;
 
-	while (level < 5) {
-		level++;
-		Word* wordlisthead = NULL;
+	while (stage < 5) {
+		stage++;
+		Node* wordlisthead = NULL;
 		score = 0;
 		idx = 0;
 		heart = 4;
-
-		system("cls");
-		printstory(level);
-		gotoxy(START_X, START_Y + 22);
-		printf("[Enter 키를 눌러 계속하세요...]");
-		while (_getch() != 13);
-		system("cls");
+		
+		if (g_settings.view_story) {
+			system("cls");
+			printstory(stage);
+			gotoxy(START_X, START_Y + 22);
+			printf("[Enter 키를 눌러 계속하세요...]");
+			while (_getch() != 13);
+			system("cls");
+		}
 
 		gotoxy(START_X, START_Y - 1);
-		switch (level) {
-		case 1:	case 2:	case 3:	case 4: printf("===================  [  Level %d  ]  ==================", level); break;
-		case 5: printf("===================  [   BOSS    ]  =================="); break;
+		switch (stage) {
+		case 1:	case 2:	case 3:	case 4:
+			printf("===================  [  ");
+			COLOR_PRINTF(33, "");
+			printf("Stage % d", stage);
+			COLOR_PRINTF(0, "");
+			printf("  ]  ==================");
+			break;
+		case 5: 
+			printf("===================  [   ");
+			COLOR_PRINTF(31, "");
+			printf("BOSS");
+			COLOR_PRINTF(0, "");
+			printf("  ]  ==================");
+			break;
 		default: break;
 		}
 		gotoxy(START_X + 19, START_Y + 22);
@@ -467,13 +560,16 @@ void storymode() {
 		wordtimer(0);
 		DWORD gamestart = timeGetTime();
 		DWORD wordstart = timeGetTime();
-		t = leveltimelimit[level - 1];
+		t = stagetimelimit[stage - 1];
 		wordtimer(TIMER_END);
 
 		int wordcnt = 5;
 		while (heart) {
 			gotoxy(START_X, START_Y - 3);
-			printf("score: %2d                                   heart: %3d ", score, heart);
+			printf("score: %2d                                   ", score);
+			COLOR_PRINTF(31, "");
+			printf("heart: %3d ", score);
+			COLOR_PRINTF(0, "");
 
 			if (wordtimer(t)) {
 				wordcnt++;
@@ -485,7 +581,7 @@ void storymode() {
 					Word tmpword;
 					tmpword.x = START_X + 15 * (rand() % 4);
 					tmpword.y = START_Y + 1;
-					strcpy(tmpword.text, generate_word(10 + level));
+					strcpy(tmpword.text, generate_word(10 + stage));
 					append_node(&wordlisthead, tmpword);
 				}
 				print_word_text(wordlisthead);
@@ -544,12 +640,14 @@ void storymode() {
 			}
 		}
 		if (score >= STORY_WORDLIMIT) {
-			if (level >= 5) {
-				level++;
-				printstory(level);
-				gotoxy(START_X, START_Y + 22);
-				printf("Press Enter to return to lobby");
-				while (_getch() != 13);
+			if (stage >= 5) {
+				stage++;
+				if (g_settings.view_story) {
+					printstory(stage);
+					gotoxy(START_X, START_Y + 22);
+					printf("Press Enter to return to lobby");
+					while (_getch() != 13);
+				}
 				break;
 			}
 			gotoxy(START_X, START_Y + 24);
@@ -560,7 +658,7 @@ void storymode() {
 			Beep(1108, 90);  // C6#
 			Beep(1174, 200); // D6
 			gotoxy(START_X, START_Y + 25);
-			printf("Press Enter to next level.");
+			printf("Press Enter to next stage.");
 			while (_getch() != 13);
 			continue;
 		}
