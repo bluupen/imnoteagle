@@ -1,26 +1,13 @@
 #include "game.h"
 
-void test() {
-	while (1) {
-		COLOR_PRINTF(31, "hello\n");
-		COLOR_PRINTF(33, "hello\n");
-		COLOR_PRINTF(34, "hello\n");
-		COLOR_PRINTF(35, "hello\n");
-		COLOR_PRINTF(36, "hello\n");
-		COLOR_PRINTF(37, "hello\n");
-		COLOR_PRINTF(32, "hello\n");
-		while (_getch()  != 27);
-	}
-}
- 
 GameSettings g_settings = { 
 	1, // storymode starting stage
 	1, // if show story
-	0 // if ever clear normal mode
+	0 // have ever cleard normal mode
 };
 
 int main() {
-	// no more cursor blinking
+	// 커서 깜빡임 제거
 	CONSOLE_CURSOR_INFO cursorInfo = { 0, };
 	cursorInfo.bVisible = 0;
 	cursorInfo.dwSize = 1;
@@ -30,8 +17,6 @@ int main() {
 	system("mode con: cols=90 lines=34");
 
 	srand(time(0));
-
-	//test();
 
 	int gametype = 1; // 1: easy, 2: normal, 3: hard, 4: story mode
 
@@ -202,18 +187,18 @@ void settings() {
 				printf("  ");
 				ch = _getch();
 				switch (ch) {
-				case 72: // Up arrow
+				case 72: // Up
 					(option)--;
 					if (option < 1) option = 3;
 					break;
-				case 80: // Down arrow
+				case 80: // Down
 					(option)++;
 					if (option > 3) option = 1;
 					break;
 				default: break;
 				}
 			}
-			else if (ch == 13) { // Enter key
+			else if (ch == 13) { // Enter
 				switch (option) {
 				case 1:
 					g_settings.story_startstage++;
@@ -274,18 +259,18 @@ void lobby(int* gametype) {
 				printf("  ");
 				ch = _getch();
 				switch (ch) {
-				case 72: // Up arrow
+				case 72: // Up
 					(option)--;
 					if (option < 1) option = 4;
 					break;
-				case 80: // Down arrow
+				case 80: // Down
 					(option)++;
 					if (option > 4) option= 1;
 					break;
 				default: break;
 				}
 			}
-			else if (ch == 13) { // Enter key
+			else if (ch == 13) { // Enter
 				switch (option) {
 				case 1:
 					gotoxy(START_X, START_Y + 1);
@@ -307,11 +292,11 @@ void lobby(int* gametype) {
 								printf("  ");
 								ch = _getch();
 								switch (ch) {
-								case 72: // Up arrow
+								case 72: // Up
 									(option)--;
 									if (option < 1) option = 3;
 									break;
-								case 80: // Down arrow
+								case 80: // Down
 									(option)++;
 									if (option > 3) option = 1;
 									break;
@@ -506,7 +491,7 @@ void storymode() {
 			system("cls");
 			gotoxy(START_X, START_Y);
 			COLOR_PRINTF(31, "");
-			printf("(Error) CoreNet: You are NOT Authorized to Access.");
+			printf("(Error) [CoreNet]: You are NOT Authorized to Access.");
 			COLOR_PRINTF(0, "");
 			gotoxy(START_X, START_Y + 2);
 			printf("you have to clear Normal Mode to access.");
@@ -538,7 +523,7 @@ void storymode() {
 			system("cls");
 			printstory(stage);
 			gotoxy(START_X, START_Y + 22);
-			printf("[Enter 키를 눌러 계속하세요...]");
+			printf("[ Enter 키를 눌러 계속하세요... ]");
 			while (_getch() != 13);
 			system("cls");
 		}
@@ -672,10 +657,10 @@ void storymode() {
 				stage++;
 				if (g_settings.view_story) {
 					printstory(stage);
-					gotoxy(START_X, START_Y + 22);
-					printf("로비로 돌아가기 (Enter)");
-					while (_getch() != 13);
 				}
+				gotoxy(START_X, START_Y + 25);
+				printf("로비로 돌아가기 (Enter)");
+				while (_getch() != 13);
 				break;
 			}
 			gotoxy(START_X, START_Y + 24);

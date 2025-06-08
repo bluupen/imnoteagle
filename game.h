@@ -10,18 +10,19 @@
 #define SIZE 10
 #define START_X 15
 #define START_Y 5
-#define NORMAL_TIMELIMIT 60000 // 60000
-#define NORMAL_WORDLIMIT 20 // 20
-#define STORY_WORDLIMIT 30 // 30
+#define NORMAL_TIMELIMIT 60000
+#define NORMAL_WORDLIMIT 20
+#define STORY_WORDLIMIT 30
 #define TIMER_END -1
 #define STORY_WORD_CYCLE 4 // generate new word every CYCLE times of drops
 
 #define COLOR_PRINTF(color,str) printf("\033[0;"#color"m" str)
+// Black(30) : \033[0;30m
 // red 31
 // yellow 33
 // bright red 91
 // bright blue 94
-//Black(30) : \033[0;30m
+// reset 0
 
 typedef struct Word {
 	char text[SIZE];
